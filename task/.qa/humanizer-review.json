@@ -1,0 +1,50 @@
+{
+  "skill": "humanizer-zh",
+  "result": "PASS",
+  "reviewed_scopes": [
+    "任务名称",
+    "任务概要",
+    "任务prompt",
+    "关键动作",
+    "评分表",
+    "环境依赖",
+    "软件步骤",
+    "输入材料中的自然语言",
+    "Reference中的用户可见文字",
+    "关键标准答案工作簿全部自然语言",
+    "任务规格工作簿全部自然语言"
+  ],
+  "scores": {
+    "直接性": 9,
+    "节奏": 9,
+    "信任度": 10,
+    "真实性": 10,
+    "精炼度": 9,
+    "total": 47
+  },
+  "minimum_total": 45,
+  "notes": [
+    "标题改为队列消费者弹性清单恢复，是平台发布岗位的直接业务称呼，没有双指标仲裁、缩容稳定窗口、策略预算复演等名词堆叠。",
+    "Prompt只要求恢复HPA合同、保护Deployment和生成Kustomize候选材料，没有离线复算HPA Controller轨迹，也没有固定时间点或验收矩阵。",
+    "任务结论限定为kubectl客户端构建和静态字段核对，明确不代表指标采集、调度或实际扩缩容，消除了软件能力幻觉。",
+    "输入材料、Reference说明、工作簿与环境依赖使用发布负责人消费链，没有自动评测、反作弊、双净目录或本题特有风险是模板。",
+    "与当前批次标题横向复读，未采用交接、审查、排查、冲突处理、发布窗口或双名词后缀；未发现伪引用、无来源资源数字或推理跳步。"
+  ],
+  "reviewed_artifacts_sha256": {
+    "任务名称.txt": "fed32811b7418b0a35f49de152daa13ed76e3b379fa2ec69ca7490913ca8977f",
+    "任务概要.txt": "c288b9ca4050403748a744f594638ff61faad5e65bcf87d04926e060c8259dc2",
+    "任务prompt.txt": "1d74c600ddcadeee896814eb0fa9f72d533d2e84a478c3a7fddb3d33910edfb2",
+    "关键动作.txt": "292e926efbc2c56eb6251a11dcec2f8efa598db4d5909678914c9a8d3b098250",
+    "评分表.txt": "ad7f3a3037201af22eb5169a075dda410132a189890f1b2889a5b60de7b31db8",
+    "环境依赖.txt": "33e638d1ea8d26a18aa9f8243068659e877e8a791c71f6530f4a4d59bd55f70b",
+    "相关专业软件的关键步骤.txt": "86d38c83ac546b33d722145538a71bf5253333730199f0b206cbc1b1234577fd",
+    "task_fields.json": "9aa092b3ce791851a3b440b3ba4579b70980a51616ffae676f23773442fb09b2",
+    "输入数据包.zip": "30678e914502949899e5f07cd4cd5a00603562d18360a13383ea0852966c9005",
+    "reference.zip": "aeffa0c5d6c715be09b6a46288518350e9ec425f747da2de34dab87ece1f98ed",
+    "关键标准答案.xlsx": "39ae7b133191ea7c32bf25e1e2401b920dc5982cd142fa45b83f9f0952374f16",
+    "任务规格转化.xlsx": "7a0543835672a45e221c0d0440a91f8f04d84906c3cfe3c2ec6364cb28f7b14f",
+    "ALE-专家数据作业表_q2505.csv": "6eccf29b73e884b450134f2fb024d628ec27dd1c4b7f0482b1530745ad85fd4d"
+  },
+  "online_ai_field_used_as_conclusion": false,
+  "reviewed_on": "2026-08-12"
+}
