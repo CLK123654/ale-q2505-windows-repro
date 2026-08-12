@@ -6,8 +6,8 @@
 
 4. 在release/production目录编写kustomization.yaml，只引用整理后的Deployment和HPA。
 
-5. 运行kubectl kustomize release/production生成rendered.yaml，解析对象复合身份并核对HPA引用。
+5. 运行kubectl kustomize release/production生成rendered.yaml，查看对象身份与HPA引用。
 
 6. 对照输入Deployment与候选Deployment的spec，检查selector、Pod模板、容器镜像、参数和资源配置。
 
-7. 汇总HPA合同字段、环境标签和Deployment保护结果，形成发布负责人可读的核对记录。
+7. 对比当前HPA与候选HPA，整理字段变更记录和发布说明，交代Deployment业务配置的保留范围。

@@ -5,7 +5,7 @@ current目录保存当前Deployment和HPA，autoscaling_policy.json是容量策�
 
 修正HPA的目标引用、副本范围、CPU与外部队列指标以及升降行为。将两个对象组织到production的Kustomize目录，用kubectl在本地生成候选YAML。
 
-发布负责人会接收Kustomize目录、渲染清单和核对记录。记录要说明对象身份、HPA策略是否符合合同，Deployment的selector、Pod模板和容器配置是否保持原样。这些材料用于发布前审阅，不代表集群已经执行扩缩容。",输入数据包.zip,reference.zip,关键标准答案.xlsx,"阅读当前Deployment、故障HPA、容量策略和环境标签，确认对象身份与待调整字段。
+发布负责人会接收Kustomize目录、渲染清单、变更记录和发布说明。变更记录要交代HPA策略的前后差异，发布说明要写明Deployment业务配置的保留范围。这些材料用于安排上线，不代表集群已经执行扩缩容。",输入数据包.zip,reference.zip,关键标准答案.xlsx,"阅读当前Deployment、故障HPA、容量策略和环境标签，确认对象身份与待调整字段。
 
 按容量策略修正HPA的目标引用、副本边界、CPU指标、外部队列指标和升降行为。
 
@@ -13,99 +13,99 @@ current目录保存当前Deployment和HPA，autoscaling_policy.json是容量策�
 
 把两个对象组织成Kustomize发布目录，使用kubectl在本地生成候选清单。
 
-比较当前对象与候选清单，整理策略一致性、对象引用、标签和Deployment保护结果。","检查项：交付材料与输入使用
+比较当前对象与候选清单，整理HPA字段前后差异和Deployment保留范围。","检查项：发布材料与输入使用
 优先级：Gate项
 所属层级：L3输入数据导入与完整性层
-标准答案：交付内容包含production Kustomize目录、kubectl渲染清单、字段核对表、发布复核JSON和说明，当前Deployment、当前HPA、容量策略与环境标签都参与整理。
-关键字段：release/production、evidence、namespace、workload、environment
-容差：YAML文档顺序和键序可变，文件需可解析。
-失败边界：核心材料缺失、任一输入未使用、对象身份不一致仍继续生成。
-可观察证据：output目录、release_review.json、kubectl退出码。
-客观硬性标准：声明路径存在，四类输入均可追溯到候选对象或复核记录。
-阈值：核心材料缺失数为0，输入使用率为100%，解析失败数为0。
+标准答案：交付内容包括release/production目录、rendered.yaml、change_record.csv和release_notes.txt，当前Deployment、当前HPA、容量策略与环境标签均参与整理。
+关键字段：release/production、rendered.yaml、change_record.csv、release_notes.txt、source
+容差：YAML键序和文档顺序可以变化，声明的交付路径须存在且内容可解析。
+失败边界：任一核心交付物缺失，或者四类业务输入中有材料未进入候选对象或变更记录。
+可观察证据：reference.zip根目录的声明路径，change_record.csv的source列，候选Deployment与HPA。
+客观硬性标准：每个声明路径可打开，source列覆盖autoscaling_policy.json、environment_labels.csv和current/deployment.yaml，当前HPA可与候选HPA直接比较。
+阈值：声明路径全部存在，四类业务输入均有可定位去向，解析错误为零。
 
 检查项：HPA对象与目标引用
 优先级：Gate项
-所属层级：L7产物结构层
-标准答案：HPA为autoscaling/v2HorizontalPodAutoscaler，身份为queue-platform/queue-worker，scaleTargetRef指向apps/v1Deployment/queue-worker。
-关键字段：apiVersion、kind、metadata.namespace、metadata.name、scaleTargetRef
-容差：YAML排版无要求，身份和引用字段无容差。
+所属层级：L7产物结构或Schema或专业对象层
+标准答案：HPA使用autoscaling/v2HorizontalPodAutoscaler，位于queue-platform，名称为queue-worker，scaleTargetRef指向apps/v1Deployment queue-worker。
+关键字段：apiVersion、kind、metadata.namespace、metadata.name、spec.scaleTargetRef
+容差：YAML排版可变，对象身份和引用字段精确匹配。
 失败边界：版本、类型、命名空间、名称或目标引用任一不符。
-可观察证据：release/production/hpa.yaml与rendered.yaml。
-客观硬性标准：对象复合身份和scaleTargetRef逐字段等于策略目标。
-阈值：身份差异数为0，引用差异数为0。
+可观察证据：release/production/hpa.yaml与rendered.yaml中的HorizontalPodAutoscaler对象。
+客观硬性标准：对象身份和scaleTargetRef逐字段等于autoscaling_policy.json中的namespace与workload所确定的目标。
+阈值：身份差异为零，引用差异为零。
 
-检查项：副本边界与两类指标
+检查项：副本边界与弹性指标
 优先级：高权重项
 所属层级：L6领域计算与专业规则层
-标准答案：minReplicas、maxReplicas、CPU Utilization和External queue_depth AverageValue逐字段等于autoscaling_policy.json。
-关键字段：minReplicas、maxReplicas、metrics.type、averageUtilization、metric.name、averageValue
-容差：指标数组顺序可变，字段值无容差。
-失败边界：缺少任一指标、目标类型错误、数值串用或多出未授权指标。
-可观察证据：autoscaling_policy.json、hpa.yaml和rendered.yaml。
-客观硬性标准：指标类型集合精确等于Resource与External，所有目标值等于合同。
-阈值：指标缺失或多出数为0，合同字段差异数为0。
+标准答案：minReplicas、maxReplicas、CPU Utilization和External queue_depth AverageValue逐字段取自autoscaling_policy.json。
+关键字段：spec.minReplicas、spec.maxReplicas、spec.metrics.type、averageUtilization、metric.name、averageValue
+容差：metrics数组顺序可变，字段名称、类型和值精确匹配。
+失败边界：缺少Resource或External指标，目标类型错误，合同值串用，或者出现容量策略未定义的指标。
+可观察证据：autoscaling_policy.json、release/production/hpa.yaml与rendered.yaml。
+客观硬性标准：指标类型集合为Resource与External，两类目标字段和副本边界均等于容量策略。
+阈值：指标集合差异为零，合同字段差异为零。
 
 检查项：HPA升降行为
 优先级：高权重项
 所属层级：L6领域计算与专业规则层
-标准答案：scaleUp和scaleDown的stabilizationWindowSeconds、selectPolicy及Percent和Pods策略均来自容量合同。
-关键字段：scaleUp、scaleDown、stabilizationWindowSeconds、selectPolicy、type、value、periodSeconds
-容差：policies数组顺序可变，策略字段无容差。
-失败边界：扩容仍Disabled、缩容窗口错误、选择规则或任一策略字段缺失。
-可观察证据：autoscaling_policy.json、hpa.yaml和release_review.json。
-客观硬性标准：升降两侧所有字段结构化比较相等。
-阈值：行为字段差异数为0，策略集合差异数为0。
+标准答案：scaleUp与scaleDown的stabilizationWindowSeconds、selectPolicy以及Percent和Pods策略均来自容量策略。
+关键字段：spec.behavior.scaleUp、spec.behavior.scaleDown、stabilizationWindowSeconds、selectPolicy、type、value、periodSeconds
+容差：policies数组顺序可变，各策略字段精确匹配。
+失败边界：scaleUp仍为Disabled，缩容窗口未恢复，选择规则错误，或者Percent与Pods策略缺失。
+可观察证据：autoscaling_policy.json、release/production/hpa.yaml和change_record.csv。
+客观硬性标准：升降两侧的窗口、选择规则与策略集合均能回查容量策略，变更记录写明已调整字段。
+阈值：行为字段差异为零，策略集合差异为零，主要变更均有记录。
 
 检查项：Deployment业务配置保护
 优先级：Gate项
 所属层级：L9跨产物一致性与可追溯层
-标准答案：候选Deployment.spec与输入Deployment.spec完全一致，只允许metadata.labels增加production公共标签。
+标准答案：候选Deployment.spec与current/deployment.yaml中的spec完全一致，metadata.labels只增加production公共标签。
 关键字段：spec.selector、spec.template、containers、image、args、resources、serviceAccountName
-容差：YAML键序可变，Deployment.spec无字段容差。
-失败边界：selector、Pod模板、容器配置、资源或副本数任一变化。
-可观察证据：current/deployment.yaml、release/production/deployment.yaml与rendered.yaml结构化差分。
-客观硬性标准：输入与候选Deployment.spec深度相等。
-阈值：Deployment.spec差异路径数为0。
+容差：YAML键序可变，Deployment.spec精确匹配。
+失败边界：selector、Pod模板、容器配置、资源、副本数或服务账号任一变化。
+可观察证据：current/deployment.yaml、release/production/deployment.yaml、rendered.yaml与change_record.csv。
+客观硬性标准：输入与候选Deployment.spec结构化比较相等，change_record.csv将Deployment.spec记为unchanged。
+阈值：Deployment.spec差异路径为零，变更记录中的前后状态均为unchanged。
 
-检查项：环境标签
+检查项：production公共标签
 优先级：普通项
 所属层级：L5多源关联与字段一致性层
-标准答案：Deployment和HPA均含environment、owner和cost-center三个标签，其值来自production标签表。
+标准答案：Deployment和HPA均包含environment、owner与cost-center标签，值取自environment_labels.csv的production行。
 关键字段：platform.example/environment、platform.example/owner、platform.example/cost-center
-容差：原有标签可保留，三个公共标签键值无容差。
-失败边界：任一对象漏标签、值串环境或改写原有app标签。
-可观察证据：environment_labels.csv、两个候选对象和rendered.yaml。
-客观硬性标准：两个对象均包含三个合同键值且原有标签仍在。
-阈值：公共标签缺失数为0，标签值错误数为0，原标签丢失数为0。
+容差：原有标签可以保留，三个公共标签的键和值精确匹配。
+失败边界：任一对象漏掉公共标签、标签值来自错误环境，或者原有app标签丢失。
+可观察证据：environment_labels.csv、两个候选对象与rendered.yaml。
+客观硬性标准：两个对象都包含production行给出的三个键值，原有app.kubernetes.io/name仍在。
+阈值：公共标签缺失为零，标签值错误为零，原有标签丢失为零。
 
-检查项：kubectl Kustomize构建
+检查项：Kustomize候选清单
 优先级：Gate项
-所属层级：L8运行验证与可执行行为层
-标准答案：kubectl.exe1.32.6实际执行kustomize，渲染结果只包含目标Deployment和HPA，不连接API Server。
-关键字段：kustomization.yaml、resources、rendered_objects、kubectl_executed
-容差：YAML文档顺序可变，对象复合身份集合无容差。
-失败边界：静态拼接冒充kubectl、渲染失败、多出对象、依赖集群或网络。
-可观察证据：kubectl命令退出码、rendered.yaml和release_review.json。
-客观硬性标准：kubectl_executed为true，对象身份集合精确等于两个目标对象。
-阈值：kubectl退出码为0，多余或缺失对象数为0，外部连接数为0。
+所属层级：L8运行验证或可执行行为层
+标准答案：release/production/kustomization.yaml引用候选Deployment与HPA，kubectl kustomize release/production能够生成rendered.yaml。
+关键字段：resources、apiVersion、kind、metadata.namespace、metadata.name
+容差：渲染文档顺序和YAML排版可变，对象身份集合精确匹配。
+失败边界：Kustomize入口无法构建，引用了范围外对象，或者渲染清单缺少Deployment或HPA。
+可观察证据：kustomization.yaml、kubectl命令结果与rendered.yaml。
+客观硬性标准：kubectl命令成功，rendered.yaml含queue-platform中的queue-worker Deployment与HorizontalPodAutoscaler，且没有其它对象。
+阈值：构建退出码为零，对象身份集合差异为零。
 
-检查项：发布说明边界
-优先级：辅助项
-所属层级：L1任务指令遵循层
-标准答案：README说明Kustomize目录、候选清单与复核记录的用途，并明确READY不代表HPA Controller已执行扩缩容。
-关键字段：release/production、rendered.yaml、release_review.json、field_review.csv、READY
-容差：措辞和段落组织可变，客户端结论边界不能变化。
-失败边界：声称实际伸缩已发生、主要文件用途缺失或引用不存在材料。
-可观察证据：output/README.txt与实际文件。
-客观硬性标准：说明覆盖四类材料并写清客户端构建边界。
-阈值：材料说明覆盖率为100%，能力夸大表述数为0。","支持的操作系统为Windows11。主软件为Kubernetes，使用Windows原生kubectl.exe1.32.6及其内置Kustomize5.5.0功能。kubectl按Apache2.0许可使用。
+检查项：变更记录与发布说明
+优先级：普通项
+所属层级：L9跨产物一致性与可追溯层
+标准答案：change_record.csv列出HPA的主要字段变化和Deployment保留状态，release_notes.txt说明交付用途、Deployment保护范围及客户端清单的结论边界。
+关键字段：object、field、current_value、candidate_value、source、Deployment、HPA Controller
+容差：说明文字可以调整，CSV行序可以变化，字段含义和对象引用须保持一致。
+失败边界：主要HPA变化未记录，Deployment保护范围未说明，引用不存在材料，或者把候选清单写成实际扩缩容结果。
+可观察证据：change_record.csv、release_notes.txt、当前对象与候选对象。
+客观硬性标准：记录中的前后值能从输入与候选清单复核，说明覆盖发布材料用途和客户端能力边界。
+阈值：主要变化记录完整，错误对象引用为零，实际扩缩容声明为零。","支持的操作系统为Windows11。主软件为Kubernetes，使用Windows原生kubectl.exe1.32.6及其内置Kustomize5.5.0功能。kubectl按Apache2.0许可使用。
 
-辅助工具包括PowerShell7、Python3.12、PyYAML6.0.2、UTF-8文本编辑器、CSV查看器和JSON查看器。Python负责读取本地合同、组织清单、调用kubectl和导出核对记录，不模拟控制器或集群行为。
+辅助工具包括PowerShell7、Python3.12、PyYAML6.0.2、UTF-8文本编辑器、CSV查看器和JSON查看器。Python负责读取本地合同、组织清单、调用kubectl和导出变更记录，不模拟控制器或集群行为。
 
 准备环境时允许联网安装固定版本，正式处理本地材料时无需联网。操作者需要读取输入目录、执行kubectl.exe和新建输出目录的权限，不需要kubeconfig、集群权限、镜像仓库凭据或管理员权限。
 
-发布环节的主要风险来自两处。一处是修HPA时顺手改了Deployment业务配置，另一处是把静态候选清单当成实际伸缩结果。核对记录要分别说明HPA合同字段和Deployment保护字段，渲染结论只覆盖kubectl客户端生成的对象。","1. 用kubectl读取current目录中的Deployment和HPA，确认queue-platform命名空间与queue-worker目标身份。
+发布环节的主要风险来自两处。一处是修HPA时顺手改了Deployment业务配置，另一处是把静态候选清单当成实际伸缩结果。变更记录要列清HPA字段差异，发布说明只陈述kubectl客户端生成的对象和Deployment保留范围。","1. 用kubectl读取current目录中的Deployment和HPA，确认queue-platform命名空间与queue-worker目标身份。
 
 2. 根据autoscaling_policy.json修正autoscaling/v2HPA的副本边界、两类指标和behavior字段。
 
@@ -113,8 +113,8 @@ current目录保存当前Deployment和HPA，autoscaling_policy.json是容量策�
 
 4. 在release/production目录编写kustomization.yaml，只引用整理后的Deployment和HPA。
 
-5. 运行kubectl kustomize release/production生成rendered.yaml，解析对象复合身份并核对HPA引用。
+5. 运行kubectl kustomize release/production生成rendered.yaml，查看对象身份与HPA引用。
 
 6. 对照输入Deployment与候选Deployment的spec，检查selector、Pod模板、容器镜像、参数和资源配置。
 
-7. 汇总HPA合同字段、环境标签和Deployment保护结果，形成发布负责人可读的核对记录。",任务规格转化.xlsx,是,用户883679,2026-08-12
+7. 对比当前HPA与候选HPA，整理字段变更记录和发布说明，交代Deployment业务配置的保留范围。",任务规格转化.xlsx,是,用户883679,2026-08-12

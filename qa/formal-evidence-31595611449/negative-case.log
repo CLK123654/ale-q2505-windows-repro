@@ -1,0 +1,9 @@
+return_code=1
+Traceback (most recent call last):
+  File "D:\a\ale-q2505-windows-repro-candidate\ale-q2505-windows-repro-candidate\implementation\build_delivery.py", line 44, in <module>
+    if __name__=="__main__":main()
+                            ^^^^^^
+  File "D:\a\ale-q2505-windows-repro-candidate\ale-q2505-windows-repro-candidate\implementation\build_delivery.py", line 15, in main
+    if len(labels)!=1 or labels[0]["environment"]!="production" or labels[0]["namespace"]!=policy["namespace"]:raise ValueError("production\u6807\u7b7e\u5408\u540c\u4e0d\u5b8c\u6574")
+                                                                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: production\u6807\u7b7e\u5408\u540c\u4e0d\u5b8c\u6574

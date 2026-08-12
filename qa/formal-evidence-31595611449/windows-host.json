@@ -1,0 +1,8 @@
+{
+  "caption": "Microsoft Windows Server 2025 Datacenter",
+  "version": "10.0.26100",
+  "build": "26100",
+  "runner_image": "win25-vs2026",
+  "commit_sha": "0919353e2d34e526166deb0116df1a52d4264af7",
+  "workflow_run_id": "31595611449"
+}

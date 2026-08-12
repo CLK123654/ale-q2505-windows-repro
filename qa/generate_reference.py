@@ -32,12 +32,12 @@ candidate = EVIDENCE / "reference-candidate.zip"
 with zipfile.ZipFile(candidate, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
     for path in sorted((WORK / "output").rglob("*")):
         if path.is_file():
-            archive.write(path, path.relative_to(WORK).as_posix())
+            archive.write(path, path.relative_to(WORK / "output").as_posix())
 summary = {
     "result": "PASS",
     "mode": "reference",
     "commit_sha": os.getenv("GITHUB_SHA"),
     "workflow_run_id": os.getenv("GITHUB_RUN_ID"),
-    "reference_members": sorted(path.relative_to(WORK).as_posix() for path in (WORK / "output").rglob("*") if path.is_file()),
+    "reference_members": sorted(path.relative_to(WORK / "output").as_posix() for path in (WORK / "output").rglob("*") if path.is_file()),
 }
 (EVIDENCE / "reference-generation.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

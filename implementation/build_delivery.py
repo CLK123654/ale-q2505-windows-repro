@@ -17,7 +17,7 @@ def main()->None:
  if current_deployment["metadata"]["name"]!=policy["workload"] or current_deployment["metadata"]["namespace"]!=policy["namespace"]:raise ValueError("Deployment身份与容量合同不一致")
  temp=Path(tempfile.mkdtemp(prefix="queue-release-",dir=out.parent))
  try:
-  release=temp/"release/production";evidence=temp/"evidence";release.mkdir(parents=True);evidence.mkdir()
+  release=temp/"release/production";release.mkdir(parents=True)
   deployment=json.loads(json.dumps(current_deployment));hpa=json.loads(json.dumps(current_hpa));common={"platform.example/environment":"production","platform.example/owner":labels[0]["owner_label"],"platform.example/cost-center":labels[0]["cost_center_label"]}
   deployment["metadata"].setdefault("labels",{}).update(common);hpa["metadata"].setdefault("labels",{}).update(common)
   hpa["apiVersion"]="autoscaling/v2";hpa["kind"]="HorizontalPodAutoscaler";hpa["metadata"]["name"]=policy["workload"];hpa["metadata"]["namespace"]=policy["namespace"]
@@ -25,17 +25,21 @@ def main()->None:
   dump(release/"deployment.yaml",deployment);dump(release/"hpa.yaml",hpa);(release/"kustomization.yaml").write_text("apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\nresources:\n  - deployment.yaml\n  - hpa.yaml\n",encoding="utf-8")
   rendered=run([a.kubectl,"kustomize",str(release)])
   if rendered.returncode:raise RuntimeError(rendered.stdout+rendered.stderr)
-  (evidence/"rendered.yaml").write_text(rendered.stdout,encoding="utf-8");docs=[x for x in yaml.safe_load_all(rendered.stdout) if x]
+  (temp/"rendered.yaml").write_text(rendered.stdout,encoding="utf-8");docs=[x for x in yaml.safe_load_all(rendered.stdout) if x]
   ids=sorted(f"{x['apiVersion']}|{x['kind']}|{x['metadata'].get('namespace','')}|{x['metadata']['name']}" for x in docs);expected=sorted([f"apps/v1|Deployment|{policy['namespace']}|{policy['workload']}",f"autoscaling/v2|HorizontalPodAutoscaler|{policy['namespace']}|{policy['workload']}"])
   if ids!=expected:raise ValueError("渲染对象身份不符合发布范围")
   if deployment["spec"]!=current_deployment["spec"]:raise ValueError("Deployment业务配置发生变化")
-  metric_types={x["type"] for x in hpa["spec"]["metrics"]};checks={"rendered_objects_match":ids==expected,"deployment_spec_unchanged":deployment["spec"]==current_deployment["spec"],"target_ref_match":hpa["spec"]["scaleTargetRef"]=={"apiVersion":"apps/v1","kind":"Deployment","name":policy["workload"]},"replica_bounds_match":(hpa["spec"]["minReplicas"],hpa["spec"]["maxReplicas"])==(policy["min_replicas"],policy["max_replicas"]),"metrics_match":metric_types=={"Resource","External"},"behavior_match":hpa["spec"]["behavior"]["scaleUp"]["selectPolicy"]==policy["scale_up"]["select_policy"] and hpa["spec"]["behavior"]["scaleDown"]["stabilizationWindowSeconds"]==policy["scale_down"]["stabilization_window_seconds"],"labels_match":all(x["metadata"]["labels"].items()>=common.items() for x in docs)}
-  review={"status":"READY" if all(checks.values()) else "HOLD","scope":"client_render_review","kubectl_executed":True,"objects":ids,"checks":checks,"note":"候选清单只说明kubectl客户端构建结果，不代表HPA Controller已经执行扩缩容"}
-  (evidence/"release_review.json").write_text(json.dumps(review,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-  with (evidence/"field_review.csv").open("w",encoding="utf-8",newline="") as f:
-   w=csv.writer(f,lineterminator="\n");w.writerow(["check","status","evidence"]);[w.writerow([k,"PASS" if v else "FAIL",k]) for k,v in checks.items()]
-  (temp/"README.txt").write_text("这份候选包交给queue-worker发布负责人。release/production保存Deployment、HPA和Kustomize入口，evidence/rendered.yaml是kubectl客户端生成的候选清单。\n\nrelease_review.json和field_review.csv记录对象身份、容量合同、环境标签与Deployment保护结果。READY只表示发布材料可以继续审阅，不表示集群控制器已经执行扩缩容。\n",encoding="utf-8")
-  if review["status"]!="READY":raise ValueError("发布材料核对未通过")
+  metric_types={x["type"] for x in hpa["spec"]["metrics"]};checks=[ids==expected,deployment["spec"]==current_deployment["spec"],hpa["spec"]["scaleTargetRef"]=={"apiVersion":"apps/v1","kind":"Deployment","name":policy["workload"]},(hpa["spec"]["minReplicas"],hpa["spec"]["maxReplicas"])==(policy["min_replicas"],policy["max_replicas"]),metric_types=={"Resource","External"},hpa["spec"]["behavior"]["scaleUp"]["selectPolicy"]==policy["scale_up"]["select_policy"],hpa["spec"]["behavior"]["scaleDown"]["stabilizationWindowSeconds"]==policy["scale_down"]["stabilization_window_seconds"],all(x["metadata"]["labels"].items()>=common.items() for x in docs)]
+  if not all(checks):raise ValueError("候选清单与发布合同不一致")
+  with (temp/"change_record.csv").open("w",encoding="utf-8",newline="") as f:
+   w=csv.writer(f,lineterminator="\n");w.writerow(["object","field","current_value","candidate_value","source"])
+   w.writerow(["HorizontalPodAutoscaler/queue-worker","spec.maxReplicas",current_hpa["spec"].get("maxReplicas"),policy["max_replicas"],"autoscaling_policy.json"])
+   w.writerow(["HorizontalPodAutoscaler/queue-worker","spec.metrics.External", "missing",f"{policy['metrics']['external_name']} AverageValue {policy['metrics']['external_average_value']}","autoscaling_policy.json"])
+   w.writerow(["HorizontalPodAutoscaler/queue-worker","spec.behavior.scaleUp.selectPolicy",current_hpa["spec"]["behavior"]["scaleUp"].get("selectPolicy"),policy["scale_up"]["select_policy"],"autoscaling_policy.json"])
+   w.writerow(["HorizontalPodAutoscaler/queue-worker","spec.behavior.scaleDown.stabilizationWindowSeconds",current_hpa["spec"]["behavior"]["scaleDown"].get("stabilizationWindowSeconds"),policy["scale_down"]["stabilization_window_seconds"],"autoscaling_policy.json"])
+   w.writerow(["Deployment/queue-worker","spec","unchanged","unchanged","current/deployment.yaml"])
+   w.writerow(["Deployment与HorizontalPodAutoscaler","metadata.labels","existing labels",";".join(f"{key}={value}" for key,value in sorted(common.items())),"environment_labels.csv"])
+  (temp/"release_notes.txt").write_text("queue-worker候选目录包含Deployment、HPA和Kustomize入口。rendered.yaml由kubectl客户端从该目录生成，供发布负责人查看本次对象内容。\n\nDeployment的spec沿用当前清单，只增加production公共标签。HPA按容量策略恢复外部队列指标与升降行为。change_record.csv列出主要字段差异。\n\n这些材料用于安排上线，未连接API Server，也不表示HPA Controller已经执行扩缩容。\n",encoding="utf-8")
   temp.rename(out)
  except Exception:
   if temp.exists():shutil.rmtree(temp)

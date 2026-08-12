@@ -4,4 +4,4 @@ current目录保存当前Deployment和HPA，autoscaling_policy.json是容量策�
 
 修正HPA的目标引用、副本范围、CPU与外部队列指标以及升降行为。将两个对象组织到production的Kustomize目录，用kubectl在本地生成候选YAML。
 
-发布负责人会接收Kustomize目录、渲染清单和核对记录。记录要说明对象身份、HPA策略是否符合合同，Deployment的selector、Pod模板和容器配置是否保持原样。这些材料用于发布前审阅，不代表集群已经执行扩缩容。
+发布负责人会接收Kustomize目录、渲染清单、变更记录和发布说明。变更记录要交代HPA策略的前后差异，发布说明要写明Deployment业务配置的保留范围。这些材料用于安排上线，不代表集群已经执行扩缩容。

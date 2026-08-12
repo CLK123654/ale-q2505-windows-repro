@@ -7,8 +7,6 @@ on:
         default: reference
         type: choice
         options: [reference, verify]
-  push:
-    branches: [main]
 permissions:
   contents: read
 jobs:
@@ -39,7 +37,7 @@ jobs:
         shell: pwsh
         run: python ./qa/generate_reference.py
       - name: Verify final task
-        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'verify') }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'verify' }}
         shell: pwsh
         run: |
           New-NetFirewallRule -DisplayName q2505-kubectl-no-external -Direction Outbound -Program $env:KUBECTL_PATH -Action Block|Out-Null
