@@ -1,0 +1,3 @@
+这批材料来自queue-worker恢复发布前的配置核对。current目录保存当前Deployment和待调整HPA，autoscaling_policy.json是容量组确认的弹性策略，environment_labels.csv记录发布环境需要补入的公共标签。
+
+这次只整理客户端可构建的Kubernetes清单。候选包不连接集群，也不把静态清单解读成控制器已经执行过扩缩容。

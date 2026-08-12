@@ -1,0 +1,27 @@
+{
+  "namespace": "queue-platform",
+  "workload": "queue-worker",
+  "min_replicas": 4,
+  "max_replicas": 30,
+  "metrics": {
+    "cpu_utilization": 65,
+    "external_name": "queue_depth",
+    "external_average_value": "30"
+  },
+  "scale_up": {
+    "stabilization_window_seconds": 0,
+    "select_policy": "Max",
+    "policies": [
+      {"type": "Percent", "value": 100, "period_seconds": 60},
+      {"type": "Pods", "value": 4, "period_seconds": 60}
+    ]
+  },
+  "scale_down": {
+    "stabilization_window_seconds": 300,
+    "select_policy": "Min",
+    "policies": [
+      {"type": "Percent", "value": 25, "period_seconds": 60},
+      {"type": "Pods", "value": 2, "period_seconds": 60}
+    ]
+  }
+}

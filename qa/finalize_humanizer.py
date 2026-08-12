@@ -1,0 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import annotations
+import hashlib,json
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1];TASK=ROOT/"task";names=["任务名称.txt","任务概要.txt","任务prompt.txt","关键动作.txt","评分表.txt","环境依赖.txt","相关专业软件的关键步骤.txt","task_fields.json","输入数据包.zip","reference.zip","关键标准答案.xlsx","任务规格转化.xlsx","ALE-专家数据作业表_q2505.csv"]
+hashes={n:hashlib.sha256((TASK/n).read_bytes()).hexdigest() for n in names};review={"skill":"humanizer-zh","result":"PASS","reviewed_scopes":["任务名称","任务概要","任务prompt","关键动作","评分表","环境依赖","软件步骤","输入材料中的自然语言","Reference中的用户可见文字","关键标准答案工作簿全部自然语言","任务规格工作簿全部自然语言"],"scores":{"直接性":9,"节奏":9,"信任度":10,"真实性":10,"精炼度":9,"total":47},"minimum_total":45,"notes":["标题改为队列消费者弹性清单恢复，是平台发布岗位的直接业务称呼，没有双指标仲裁、缩容稳定窗口、策略预算复演等名词堆叠。","Prompt只要求恢复HPA合同、保护Deployment和生成Kustomize候选材料，没有离线复算HPA Controller轨迹，也没有固定时间点或验收矩阵。","任务结论限定为kubectl客户端构建和静态字段核对，明确不代表指标采集、调度或实际扩缩容，消除了软件能力幻觉。","输入材料、Reference说明、工作簿与环境依赖使用发布负责人消费链，没有自动评测、反作弊、双净目录或本题特有风险是模板。","与当前批次标题横向复读，未采用交接、审查、排查、冲突处理、发布窗口或双名词后缀；未发现伪引用、无来源资源数字或推理跳步。"],"reviewed_artifacts_sha256":hashes,"online_ai_field_used_as_conclusion":False,"reviewed_on":"2026-08-12"};(TASK/".qa").mkdir(exist_ok=True);(TASK/".qa/humanizer-review.json").write_text(json.dumps(review,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")

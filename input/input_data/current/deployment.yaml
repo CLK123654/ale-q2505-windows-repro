@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: queue-worker
+  namespace: queue-platform
+  labels:
+    app.kubernetes.io/name: queue-worker
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: queue-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: queue-worker
+    spec:
+      serviceAccountName: queue-worker
+      containers:
+        - name: worker
+          image: registry.example/queue-worker:2.8.1
+          args:
+            - --queue=default
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi

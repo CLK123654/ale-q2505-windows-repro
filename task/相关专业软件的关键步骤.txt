@@ -1,0 +1,13 @@
+1. 用kubectl读取current目录中的Deployment和HPA，确认queue-platform命名空间与queue-worker目标身份。
+
+2. 根据autoscaling_policy.json修正autoscaling/v2HPA的副本边界、两类指标和behavior字段。
+
+3. 从environment_labels.csv读取production标签，补入Deployment与HPA的metadata.labels，保持Deployment.spec不变。
+
+4. 在release/production目录编写kustomization.yaml，只引用整理后的Deployment和HPA。
+
+5. 运行kubectl kustomize release/production生成rendered.yaml，解析对象复合身份并核对HPA引用。
+
+6. 对照输入Deployment与候选Deployment的spec，检查selector、Pod模板、容器镜像、参数和资源配置。
+
+7. 汇总HPA合同字段、环境标签和Deployment保护结果，形成发布负责人可读的核对记录。

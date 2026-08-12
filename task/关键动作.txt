@@ -1,0 +1,9 @@
+阅读当前Deployment、故障HPA、容量策略和环境标签，确认对象身份与待调整字段。
+
+按容量策略修正HPA的目标引用、副本边界、CPU指标、外部队列指标和升降行为。
+
+保留Deployment业务字段，只为Deployment和HPA补入production公共标签。
+
+把两个对象组织成Kustomize发布目录，使用kubectl在本地生成候选清单。
+
+比较当前对象与候选清单，整理策略一致性、对象引用、标签和Deployment保护结果。
