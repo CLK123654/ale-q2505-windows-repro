@@ -28,7 +28,7 @@
     "Prompt按发布工程师交接语气引用release_policy.json，没有把窗口、等待预算、回滚和观察边界写成无来源命令清单。",
     "Reference只保留上线与撤回清单、变更记录、发布计划和说明，生成器、测试器与QA证据均在交付物之外。",
     "任务结论限定为kubectl客户端构建和静态字段核对，发布计划说明实际操作仍需授权上下文，没有伪造控制器或集群结果。",
-    "逐字段复读未发现宣传腔、伪引用、无来源数字、推理跳步或制题过程用语；六类运营信息都由业务策略输入驱动。"
+    "学科二级分类沿用原记录现有的基础设施工程与云运维，与Kubernetes发布职责一致；逐字段复读未发现制题口吻或同批模板句式。"
   ],
   "reviewed_artifacts_sha256": {
     "任务名称.txt": "fed32811b7418b0a35f49de152daa13ed76e3b379fa2ec69ca7490913ca8977f",
@@ -38,12 +38,12 @@
     "评分表.txt": "f182aa715aa9123616e5e70d7da76765ec00bb7bc7a6cb71accc0c3a61c4fb98",
     "环境依赖.txt": "76cf3acf7caa70247e5295e748f19fb084510d05f8d21e8d9e4fe302c0396ef0",
     "相关专业软件的关键步骤.txt": "093c61785d5eed15e327772b6ef4846a2f0b2c1ce49c8ded67e4e32ac4347fb3",
-    "task_fields.json": "dff7e9e85113bab687938bb917cee57a2c7dc5c1628fb91aa2584e66c2e70ff2",
+    "task_fields.json": "eaa0fffc975d9aff1932283609c3a34f2914ed724f069146f028d843193abcb4",
     "输入数据包.zip": "cb6cca23d54aab5390faaef2269bcfd5e812160adc13db913afc7ef24b610662",
     "reference.zip": "8d8a2952a9760d292ef8a87c4795d8ec4b50586bf467334dc64ef93999ce6726",
     "关键标准答案.xlsx": "4ca3186eaaa74f55f308c49420a807e1fc4fcfb3e4375e5d12a1c685a296a23f",
     "任务规格转化.xlsx": "ca3749f5666c010f4de9c8f5db5b04608e39db62f9195536c8ca9b5b902be59c",
-    "ALE-专家数据作业表_q2505.csv": "27a7fabc99093ff50cabfc1c92a044568286fd476a9d8922c0b7111e727ebbf6"
+    "ALE-专家数据作业表_q2505.csv": "f764d9ead6debf884a3d44ca9753c412c0f7b56727962037dc4b0ef0889d4062"
   },
   "online_ai_field_used_as_conclusion": false,
   "reviewed_on": "2026-08-12"

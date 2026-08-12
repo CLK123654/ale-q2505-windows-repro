@@ -17,7 +17,7 @@ def read(name: str) -> str:
 fields = {
     "任务名称": read("任务名称.txt"),
     "学科一级分类": "Computing, Data & Mathematical Sciences 计算、数据与数学科学",
-    "学科二级分类": "数据与分析工程",
+    "学科二级分类": "基础设施工程与云运维",
     "题目难度": "高",
     "任务概要": read("任务概要.txt"),
     "涉及的专业软件": "Kubernetes",
