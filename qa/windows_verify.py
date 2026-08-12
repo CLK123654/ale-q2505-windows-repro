@@ -32,7 +32,7 @@ def main()->None:
    generated=compare(out,expected);clean.append({"root_id":label,"process_index":pi,"primary_software_executed":True,"input_unchanged":True,"reference_full_match":True,"generated_paths":generated})
   if before!={p.relative_to(inp).as_posix():sha(p) for p in inp.rglob("*") if p.is_file()}:raise AssertionError("input changed")
  positive=RUNS/"positive";extract(TASK/"输入数据包.zip",positive);p=positive/"input_data/autoscaling_policy.json";v=json.loads(p.read_text(encoding="utf-8"));v["max_replicas"]=32;p.write_text(json.dumps(v,ensure_ascii=False,indent=2)+"\n",encoding="utf-8");c=build(positive/"input_data",positive/"output")
- if c.returncode or "maxReplicas: 32" not in (positive/"output/rendered.yaml").read_text(encoding="utf-8"):raise AssertionError("valid policy change had no effect")
+ if c.returncode or "maxReplicas: 32" not in (positive/"output/rendered_production.yaml").read_text(encoding="utf-8"):raise AssertionError("valid policy change had no effect")
  (EVIDENCE/"positive-case.json").write_text(json.dumps({"mutation":"max_replicas从30改为32","rendered_hpa_changed":True,"behavior_changed":True},ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
  negative=RUNS/"negative";extract(TASK/"输入数据包.zip",negative);p=negative/"input_data/environment_labels.csv";lines=p.read_text().splitlines();p.write_text("\n".join(lines+[lines[1]])+"\n");out=negative/"output";out.mkdir();(out/"stale.txt").write_text("stale");c=build(negative/"input_data",out)
  if c.returncode==0 or out.exists():raise AssertionError("duplicate label contract did not fail closed")

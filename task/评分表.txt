@@ -1,46 +1,46 @@
 检查项：发布材料与输入使用
 优先级：Gate项
 所属层级：L3输入数据导入与完整性层
-标准答案：交付内容包括release/production目录、rendered.yaml、change_record.csv和release_notes.txt，当前Deployment、当前HPA、容量策略与环境标签均参与整理。
-关键字段：release/production、rendered.yaml、change_record.csv、release_notes.txt、source
-容差：YAML键序和文档顺序可以变化，声明的交付路径须存在且内容可解析。
-失败边界：任一核心交付物缺失，或者四类业务输入中有材料未进入候选对象或变更记录。
-可观察证据：reference.zip根目录的声明路径，change_record.csv的source列，候选Deployment与HPA。
-客观硬性标准：每个声明路径可打开，source列覆盖autoscaling_policy.json、environment_labels.csv和current/deployment.yaml，当前HPA可与候选HPA直接比较。
-阈值：声明路径全部存在，四类业务输入均有可定位去向，解析错误为零。
+标准答案：交付内容包括production与rollback目录、两份渲染清单、change_record.csv、release_plan.yaml和release_notes.txt，当前对象、容量策略、环境标签与发布策略均参与整理。
+关键字段：release/production、release/rollback、rendered_production.yaml、rendered_rollback.yaml、source
+容差：YAML键序和文档顺序可以变化，声明路径须存在且内容可解析。
+失败边界：任一核心材料缺失，或者主要业务输入未进入候选对象、撤回对象、变更记录或发布计划。
+可观察证据：reference.zip声明路径，change_record.csv与release_plan.yaml中的source字段。
+客观硬性标准：所有声明路径可打开，四类合同输入均能追溯到对应交付物。
+阈值：声明路径全部存在，业务输入使用率为100%，解析错误为零。
 
 检查项：HPA对象与目标引用
 优先级：Gate项
 所属层级：L7产物结构或Schema或专业对象层
-标准答案：HPA使用autoscaling/v2HorizontalPodAutoscaler，位于queue-platform，名称为queue-worker，scaleTargetRef指向apps/v1Deployment queue-worker。
+标准答案：候选HPA使用autoscaling/v2HorizontalPodAutoscaler，位于queue-platform，名称为queue-worker，scaleTargetRef指向apps/v1Deployment queue-worker。
 关键字段：apiVersion、kind、metadata.namespace、metadata.name、spec.scaleTargetRef
 容差：YAML排版可变，对象身份和引用字段精确匹配。
 失败边界：版本、类型、命名空间、名称或目标引用任一不符。
-可观察证据：release/production/hpa.yaml与rendered.yaml中的HorizontalPodAutoscaler对象。
-客观硬性标准：对象身份和scaleTargetRef逐字段等于autoscaling_policy.json中的namespace与workload所确定的目标。
+可观察证据：release/production/hpa.yaml与rendered_production.yaml。
+客观硬性标准：对象身份和scaleTargetRef逐字段等于容量策略确定的目标。
 阈值：身份差异为零，引用差异为零。
 
 检查项：副本边界与弹性指标
 优先级：高权重项
 所属层级：L6领域计算与专业规则层
-标准答案：minReplicas、maxReplicas、CPU Utilization和External queue_depth AverageValue逐字段取自autoscaling_policy.json。
+标准答案：minReplicas、maxReplicas、CPU Utilization和External queue_depth AverageValue取自autoscaling_policy.json。
 关键字段：spec.minReplicas、spec.maxReplicas、spec.metrics.type、averageUtilization、metric.name、averageValue
 容差：metrics数组顺序可变，字段名称、类型和值精确匹配。
 失败边界：缺少Resource或External指标，目标类型错误，合同值串用，或者出现容量策略未定义的指标。
-可观察证据：autoscaling_policy.json、release/production/hpa.yaml与rendered.yaml。
-客观硬性标准：指标类型集合为Resource与External，两类目标字段和副本边界均等于容量策略。
+可观察证据：autoscaling_policy.json、release/production/hpa.yaml与rendered_production.yaml。
+客观硬性标准：指标类型集合为Resource与External，两类目标字段和副本边界等于容量策略。
 阈值：指标集合差异为零，合同字段差异为零。
 
 检查项：HPA升降行为
 优先级：高权重项
 所属层级：L6领域计算与专业规则层
-标准答案：scaleUp与scaleDown的stabilizationWindowSeconds、selectPolicy以及Percent和Pods策略均来自容量策略。
+标准答案：scaleUp与scaleDown的窗口、selectPolicy以及Percent和Pods策略均来自容量策略。
 关键字段：spec.behavior.scaleUp、spec.behavior.scaleDown、stabilizationWindowSeconds、selectPolicy、type、value、periodSeconds
 容差：policies数组顺序可变，各策略字段精确匹配。
 失败边界：scaleUp仍为Disabled，缩容窗口未恢复，选择规则错误，或者Percent与Pods策略缺失。
 可观察证据：autoscaling_policy.json、release/production/hpa.yaml和change_record.csv。
-客观硬性标准：升降两侧的窗口、选择规则与策略集合均能回查容量策略，变更记录写明已调整字段。
-阈值：行为字段差异为零，策略集合差异为零，主要变更均有记录。
+客观硬性标准：升降两侧字段能够回查容量策略，变更记录写明已调整的主要字段。
+阈值：行为字段差异为零，策略集合差异为零，主要变更记录完整。
 
 检查项：Deployment业务配置保护
 优先级：Gate项
@@ -49,39 +49,61 @@
 关键字段：spec.selector、spec.template、containers、image、args、resources、serviceAccountName
 容差：YAML键序可变，Deployment.spec精确匹配。
 失败边界：selector、Pod模板、容器配置、资源、副本数或服务账号任一变化。
-可观察证据：current/deployment.yaml、release/production/deployment.yaml、rendered.yaml与change_record.csv。
-客观硬性标准：输入与候选Deployment.spec结构化比较相等，change_record.csv将Deployment.spec记为unchanged。
-阈值：Deployment.spec差异路径为零，变更记录中的前后状态均为unchanged。
+可观察证据：current/deployment.yaml、release/production/deployment.yaml与change_record.csv。
+客观硬性标准：输入与候选Deployment.spec结构化比较相等，变更记录中的状态为unchanged。
+阈值：Deployment.spec差异路径为零，保留状态错误为零。
 
 检查项：production公共标签
 优先级：普通项
 所属层级：L5多源关联与字段一致性层
-标准答案：Deployment和HPA均包含environment、owner与cost-center标签，值取自environment_labels.csv的production行。
+标准答案：候选Deployment和HPA均包含environment、owner与cost-center标签，值取自environment_labels.csv的production行。
 关键字段：platform.example/environment、platform.example/owner、platform.example/cost-center
 容差：原有标签可以保留，三个公共标签的键和值精确匹配。
 失败边界：任一对象漏掉公共标签、标签值来自错误环境，或者原有app标签丢失。
-可观察证据：environment_labels.csv、两个候选对象与rendered.yaml。
+可观察证据：environment_labels.csv、两个候选对象与rendered_production.yaml。
 客观硬性标准：两个对象都包含production行给出的三个键值，原有app.kubernetes.io/name仍在。
 阈值：公共标签缺失为零，标签值错误为零，原有标签丢失为零。
 
-检查项：Kustomize候选清单
+检查项：上线与撤回清单
 优先级：Gate项
 所属层级：L8运行验证或可执行行为层
-标准答案：release/production/kustomization.yaml引用候选Deployment与HPA，kubectl kustomize release/production能够生成rendered.yaml。
+标准答案：production与rollback的Kustomize入口分别引用各自Deployment和HPA，kubectl kustomize能够生成对应渲染清单。
 关键字段：resources、apiVersion、kind、metadata.namespace、metadata.name
 容差：渲染文档顺序和YAML排版可变，对象身份集合精确匹配。
-失败边界：Kustomize入口无法构建，引用了范围外对象，或者渲染清单缺少Deployment或HPA。
-可观察证据：kustomization.yaml、kubectl命令结果与rendered.yaml。
-客观硬性标准：kubectl命令成功，rendered.yaml含queue-platform中的queue-worker Deployment与HorizontalPodAutoscaler，且没有其它对象。
-阈值：构建退出码为零，对象身份集合差异为零。
+失败边界：任一入口无法构建，引用范围外对象，或者渲染清单缺少Deployment或HPA。
+可观察证据：两个kustomization.yaml、kubectl命令结果与两份渲染清单。
+客观硬性标准：两次kubectl命令成功，每份清单均含queue-worker Deployment与HorizontalPodAutoscaler且没有其它对象。
+阈值：构建退出码均为零，两份对象身份集合差异均为零。
+
+检查项：发布窗口与影响面
+优先级：高权重项
+所属层级：L9跨产物一致性与可追溯层
+标准答案：release_plan.yaml中的时区、窗口起止、等待预算、命名空间、工作负载和资源集合逐字段取自release_policy.json。
+关键字段：change_window.timezone、start、end、decision_wait_minutes、impact_scope
+容差：时间采用等价ISO8601偏移格式时可以规范化比较，其余字段精确匹配。
+失败边界：窗口或等待预算缺失，影响范围扩大，允许改动Deployment.spec，或者错误声明Pod需要重启。
+可观察证据：release_policy.json、release_plan.yaml与release_notes.txt。
+客观硬性标准：窗口和影响字段均可回查策略，说明中明确影响限于queue-platform中的queue-worker且不预期重启Pod。
+阈值：运营字段缺失为零，策略差异为零，越界资源为零。
+
+检查项：上线方式、撤回与观察安排
+优先级：高权重项
+所属层级：L6领域计算与专业规则层
+标准答案：release_plan.yaml承接release_policy.json中的上线命令、授权上下文要求、撤回命令、撤回触发条件与观察指标；队列、CPU和副本边界与容量策略一致。
+关键字段：rollout.command、authorized_context_required、rollback.command、rollback.triggers、observation
+容差：触发条件和观察项顺序可以变化，命令、枚举与数值边界精确匹配。
+失败边界：上线或撤回命令错误，遗漏任一触发条件，观察指标缺失，或者观察边界与容量策略冲突。
+可观察证据：release_policy.json、autoscaling_policy.json、release_plan.yaml与release_notes.txt。
+客观硬性标准：上线与撤回字段逐项相等，三个观察项齐全，queue_depth、CPU和副本边界分别等于容量策略。
+阈值：命令差异为零，触发条件集合差异为零，观察项集合和数值差异为零。
 
 检查项：变更记录与发布说明
 优先级：普通项
 所属层级：L9跨产物一致性与可追溯层
-标准答案：change_record.csv列出HPA的主要字段变化和Deployment保留状态，release_notes.txt说明交付用途、Deployment保护范围及客户端清单的结论边界。
-关键字段：object、field、current_value、candidate_value、source、Deployment、HPA Controller
-容差：说明文字可以调整，CSV行序可以变化，字段含义和对象引用须保持一致。
-失败边界：主要HPA变化未记录，Deployment保护范围未说明，引用不存在材料，或者把候选清单写成实际扩缩容结果。
-可观察证据：change_record.csv、release_notes.txt、当前对象与候选对象。
-客观硬性标准：记录中的前后值能从输入与候选清单复核，说明覆盖发布材料用途和客户端能力边界。
-阈值：主要变化记录完整，错误对象引用为零，实际扩缩容声明为零。
+标准答案：change_record.csv列出HPA主要字段变化和Deployment保留状态，release_notes.txt说明材料用途、上线安排、撤回安排与客户端结论边界。
+关键字段：object、field、current_value、candidate_value、source、HPA Controller
+容差：说明文字可以调整，CSV行序可以变化，字段含义和对象引用保持一致。
+失败边界：主要变化未记录，运营安排未说明，引用不存在材料，或者把候选清单写成实际扩缩容结果。
+可观察证据：change_record.csv、release_notes.txt、release_plan.yaml、当前对象与候选对象。
+客观硬性标准：记录中的前后值能从输入与候选清单复核，说明覆盖发布材料用途、运营安排和客户端边界。
+阈值：主要变化记录完整，六类运营信息均有落点，错误对象引用和实际扩缩容声明均为零。

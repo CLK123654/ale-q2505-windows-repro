@@ -1,13 +1,15 @@
-1. 用kubectl读取current目录中的Deployment和HPA，确认queue-platform命名空间与queue-worker目标身份。
+1. 用kubectl读取current目录中的Deployment和HPA，确认queue-platform命名空间与queue-worker目标身份，并对照release_policy.json核对影响对象。
 
 2. 根据autoscaling_policy.json修正autoscaling/v2HPA的副本边界、两类指标和behavior字段。
 
 3. 从environment_labels.csv读取production标签，补入Deployment与HPA的metadata.labels，保持Deployment.spec不变。
 
-4. 在release/production目录编写kustomization.yaml，只引用整理后的Deployment和HPA。
+4. 在release/production目录编写kustomization.yaml引用候选对象，在release/rollback目录保留当前对象作为撤回入口。
 
-5. 运行kubectl kustomize release/production生成rendered.yaml，查看对象身份与HPA引用。
+5. 分别运行kubectl kustomize release/production和kubectl kustomize release/rollback，生成候选清单与撤回清单。
 
 6. 对照输入Deployment与候选Deployment的spec，检查selector、Pod模板、容器镜像、参数和资源配置。
 
 7. 对比当前HPA与候选HPA，整理字段变更记录和发布说明，交代Deployment业务配置的保留范围。
+
+8. 将release_policy.json中的窗口、影响面、等待预算、上线命令、撤回条件和观察指标写入release_plan.yaml，供值班负责人安排操作。

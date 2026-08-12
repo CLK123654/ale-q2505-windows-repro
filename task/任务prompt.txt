@@ -1,7 +1,7 @@
-queue-worker准备恢复生产发布，上次调整漏掉了HPA的外部队列指标，扩容策略也处于关闭状态。容量组已经确认副本边界和升降策略，平台发布工程师要整理一份Kubernetes候选清单。
+queue-worker准备恢复生产发布，上次调整漏掉了HPA的外部队列指标，扩容策略也处于关闭状态。容量组已经确认弹性策略，发布工程师要把候选清单和上线安排交给值班负责人。
 
-current目录保存当前Deployment和HPA，autoscaling_policy.json是容量策略，environment_labels.csv记录production公共标签。保留Deployment业务配置，只把发布标签补到两个对象上。
+current目录保存当前Deployment和HPA，autoscaling_policy.json给出目标策略，environment_labels.csv记录production公共标签。release_policy.json写明变更窗口、影响面和运行团队接受的等待预算。
 
-修正HPA的目标引用、副本范围、CPU与外部队列指标以及升降行为。将两个对象组织到production的Kustomize目录，用kubectl在本地生成候选YAML。
+保留Deployment业务配置，修正HPA的目标引用、副本范围、指标和升降行为，再组织production与rollback两个Kustomize目录。用kubectl分别生成候选清单和撤回清单，并整理字段变化。
 
-发布负责人会接收Kustomize目录、渲染清单、变更记录和发布说明。变更记录要交代HPA策略的前后差异，发布说明要写明Deployment业务配置的保留范围。这些材料用于安排上线，不代表集群已经执行扩缩容。
+发布计划要采用策略文件约定的上线方式，写清窗口时区、涉及对象和等待时间，同时列出撤回条件与观察指标。交付Kustomize目录、两份渲染清单、变更记录、发布计划和说明。这些材料用于安排上线，不代表集群已经执行扩缩容。

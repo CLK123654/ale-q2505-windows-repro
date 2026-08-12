@@ -2,7 +2,7 @@ from __future__ import annotations
 import argparse,csv,json,shutil,subprocess,tempfile
 from pathlib import Path
 import yaml
-ROOT=Path(__file__).resolve().parent;REQUIRED={"README.txt","autoscaling_policy.json","environment_labels.csv","current/deployment.yaml","current/hpa.yaml"}
+ROOT=Path(__file__).resolve().parent;REQUIRED={"README.txt","autoscaling_policy.json","release_policy.json","environment_labels.csv","current/deployment.yaml","current/hpa.yaml"}
 def run(cmd:list[str])->subprocess.CompletedProcess[str]:return subprocess.run(cmd,text=True,capture_output=True,timeout=180)
 def load(path:Path)->dict:return yaml.safe_load(path.read_text(encoding="utf-8"))
 def dump(path:Path,value:dict)->None:path.write_text(yaml.safe_dump(value,sort_keys=False,allow_unicode=True),encoding="utf-8")
@@ -11,21 +11,28 @@ def main()->None:
  if out.exists():shutil.rmtree(out)
  present={x.relative_to(inp).as_posix() for x in inp.rglob("*") if x.is_file()}
  if present!=REQUIRED:raise ValueError("交接材料集合发生变化")
- policy=json.loads((inp/"autoscaling_policy.json").read_text(encoding="utf-8"));labels=list(csv.DictReader((inp/"environment_labels.csv").open(encoding="utf-8",newline="")))
+ policy=json.loads((inp/"autoscaling_policy.json").read_text(encoding="utf-8"));release_policy=json.loads((inp/"release_policy.json").read_text(encoding="utf-8"));labels=list(csv.DictReader((inp/"environment_labels.csv").open(encoding="utf-8",newline="")))
  if len(labels)!=1 or labels[0]["environment"]!="production" or labels[0]["namespace"]!=policy["namespace"]:raise ValueError("production标签合同不完整")
  current_deployment=load(inp/"current/deployment.yaml");current_hpa=load(inp/"current/hpa.yaml")
  if current_deployment["metadata"]["name"]!=policy["workload"] or current_deployment["metadata"]["namespace"]!=policy["namespace"]:raise ValueError("Deployment身份与容量合同不一致")
+ impact=release_policy["impact_scope"]
+ if impact["namespace"]!=policy["namespace"] or impact["workload"]!=policy["workload"]:raise ValueError("发布影响面与容量合同不一致")
+ observations={x["metric"]:x for x in release_policy["observation"]}
+ if observations["queue_depth"]["boundary"]!=int(policy["metrics"]["external_average_value"]):raise ValueError("队列观察边界与容量合同不一致")
+ if observations["cpu_utilization_percent"]["boundary"]!=policy["metrics"]["cpu_utilization"]:raise ValueError("CPU观察边界与容量合同不一致")
+ if (observations["hpa_desired_replicas"]["minimum"],observations["hpa_desired_replicas"]["maximum"])!=(policy["min_replicas"],policy["max_replicas"]):raise ValueError("副本观察边界与容量合同不一致")
  temp=Path(tempfile.mkdtemp(prefix="queue-release-",dir=out.parent))
  try:
-  release=temp/"release/production";release.mkdir(parents=True)
+  release=temp/"release/production";rollback=temp/"release/rollback";release.mkdir(parents=True);rollback.mkdir(parents=True)
   deployment=json.loads(json.dumps(current_deployment));hpa=json.loads(json.dumps(current_hpa));common={"platform.example/environment":"production","platform.example/owner":labels[0]["owner_label"],"platform.example/cost-center":labels[0]["cost_center_label"]}
   deployment["metadata"].setdefault("labels",{}).update(common);hpa["metadata"].setdefault("labels",{}).update(common)
   hpa["apiVersion"]="autoscaling/v2";hpa["kind"]="HorizontalPodAutoscaler";hpa["metadata"]["name"]=policy["workload"];hpa["metadata"]["namespace"]=policy["namespace"]
   hpa["spec"]={"scaleTargetRef":{"apiVersion":"apps/v1","kind":"Deployment","name":policy["workload"]},"minReplicas":policy["min_replicas"],"maxReplicas":policy["max_replicas"],"metrics":[{"type":"Resource","resource":{"name":"cpu","target":{"type":"Utilization","averageUtilization":policy["metrics"]["cpu_utilization"]}}},{"type":"External","external":{"metric":{"name":policy["metrics"]["external_name"]},"target":{"type":"AverageValue","averageValue":policy["metrics"]["external_average_value"]}}}],"behavior":{"scaleUp":{"stabilizationWindowSeconds":policy["scale_up"]["stabilization_window_seconds"],"selectPolicy":policy["scale_up"]["select_policy"],"policies":[{"type":x["type"],"value":x["value"],"periodSeconds":x["period_seconds"]} for x in policy["scale_up"]["policies"]]},"scaleDown":{"stabilizationWindowSeconds":policy["scale_down"]["stabilization_window_seconds"],"selectPolicy":policy["scale_down"]["select_policy"],"policies":[{"type":x["type"],"value":x["value"],"periodSeconds":x["period_seconds"]} for x in policy["scale_down"]["policies"]]}}}
   dump(release/"deployment.yaml",deployment);dump(release/"hpa.yaml",hpa);(release/"kustomization.yaml").write_text("apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\nresources:\n  - deployment.yaml\n  - hpa.yaml\n",encoding="utf-8")
-  rendered=run([a.kubectl,"kustomize",str(release)])
-  if rendered.returncode:raise RuntimeError(rendered.stdout+rendered.stderr)
-  (temp/"rendered.yaml").write_text(rendered.stdout,encoding="utf-8");docs=[x for x in yaml.safe_load_all(rendered.stdout) if x]
+  dump(rollback/"deployment.yaml",current_deployment);dump(rollback/"hpa.yaml",current_hpa);(rollback/"kustomization.yaml").write_text("apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\nresources:\n  - deployment.yaml\n  - hpa.yaml\n",encoding="utf-8")
+  rendered=run([a.kubectl,"kustomize",str(release)]);rendered_rollback=run([a.kubectl,"kustomize",str(rollback)])
+  if rendered.returncode or rendered_rollback.returncode:raise RuntimeError(rendered.stdout+rendered.stderr+rendered_rollback.stdout+rendered_rollback.stderr)
+  (temp/"rendered_production.yaml").write_text(rendered.stdout,encoding="utf-8");(temp/"rendered_rollback.yaml").write_text(rendered_rollback.stdout,encoding="utf-8");docs=[x for x in yaml.safe_load_all(rendered.stdout) if x]
   ids=sorted(f"{x['apiVersion']}|{x['kind']}|{x['metadata'].get('namespace','')}|{x['metadata']['name']}" for x in docs);expected=sorted([f"apps/v1|Deployment|{policy['namespace']}|{policy['workload']}",f"autoscaling/v2|HorizontalPodAutoscaler|{policy['namespace']}|{policy['workload']}"])
   if ids!=expected:raise ValueError("渲染对象身份不符合发布范围")
   if deployment["spec"]!=current_deployment["spec"]:raise ValueError("Deployment业务配置发生变化")
@@ -39,7 +46,10 @@ def main()->None:
    w.writerow(["HorizontalPodAutoscaler/queue-worker","spec.behavior.scaleDown.stabilizationWindowSeconds",current_hpa["spec"]["behavior"]["scaleDown"].get("stabilizationWindowSeconds"),policy["scale_down"]["stabilization_window_seconds"],"autoscaling_policy.json"])
    w.writerow(["Deployment/queue-worker","spec","unchanged","unchanged","current/deployment.yaml"])
    w.writerow(["Deployment与HorizontalPodAutoscaler","metadata.labels","existing labels",";".join(f"{key}={value}" for key,value in sorted(common.items())),"environment_labels.csv"])
-  (temp/"release_notes.txt").write_text("queue-worker候选目录包含Deployment、HPA和Kustomize入口。rendered.yaml由kubectl客户端从该目录生成，供发布负责人查看本次对象内容。\n\nDeployment的spec沿用当前清单，只增加production公共标签。HPA按容量策略恢复外部队列指标与升降行为。change_record.csv列出主要字段差异。\n\n这些材料用于安排上线，未连接API Server，也不表示HPA Controller已经执行扩缩容。\n",encoding="utf-8")
+  plan={"change_window":release_policy["change_window"],"impact_scope":impact,"rollout":release_policy["rollout"],"rollback":release_policy["rollback"],"observation":release_policy["observation"],"source":"release_policy.json"};dump(temp/"release_plan.yaml",plan)
+  window=release_policy["change_window"];rollout=release_policy["rollout"];back=release_policy["rollback"]
+  triggers="、".join(back["triggers"]);metrics="、".join(x["metric"] for x in release_policy["observation"])
+  (temp/"release_notes.txt").write_text(f"queue-worker候选目录包含Deployment、HPA和Kustomize入口。rendered_production.yaml由kubectl客户端从该目录生成，release/rollback和rendered_rollback.yaml保留撤回清单。\n\nDeployment的spec沿用当前对象，只增加production公共标签。HPA按容量策略恢复外部队列指标与升降行为。change_record.csv列出主要字段差异。\n\n值班负责人按{window['timezone']}时区在{window['start']}至{window['end']}窗口处理，使用{rollout['command']}上线，并为观察和决策保留{window['decision_wait_minutes']}分钟。影响面限于{impact['namespace']}中的{impact['workload']}，不预期重启Pod。\n\n出现{triggers}中的任一条件时，使用{back['command']}撤回。观察项为{metrics}，具体边界见release_plan.yaml。这些材料未连接API Server，也不表示HPA Controller已经执行扩缩容。\n",encoding="utf-8")
   temp.rename(out)
  except Exception:
   if temp.exists():shutil.rmtree(temp)

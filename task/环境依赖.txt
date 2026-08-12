@@ -1,7 +1,7 @@
 支持的操作系统为Windows11。主软件为Kubernetes，使用Windows原生kubectl.exe1.32.6及其内置Kustomize5.5.0功能。kubectl按Apache2.0许可使用。
 
-辅助工具包括PowerShell7、Python3.12、PyYAML6.0.2、UTF-8文本编辑器、CSV查看器和JSON查看器。Python负责读取本地合同、组织清单、调用kubectl和导出变更记录，不模拟控制器或集群行为。
+辅助工具包括PowerShell7、Python3.12、PyYAML6.0.2、UTF-8文本编辑器、CSV查看器和JSON查看器。Python负责读取本地合同、组织清单、调用kubectl并整理变更记录和发布计划，不模拟控制器或集群行为。
 
 准备环境时允许联网安装固定版本，正式处理本地材料时无需联网。操作者需要读取输入目录、执行kubectl.exe和新建输出目录的权限，不需要kubeconfig、集群权限、镜像仓库凭据或管理员权限。
 
-发布环节的主要风险来自两处。一处是修HPA时顺手改了Deployment业务配置，另一处是把静态候选清单当成实际伸缩结果。变更记录要列清HPA字段差异，发布说明只陈述kubectl客户端生成的对象和Deployment保留范围。
+发布环节的主要风险来自两处。一处是修HPA时顺手改了Deployment业务配置，另一处是窗口结束前没有为观察和撤回留出时间。发布计划要完整承接release_policy.json，静态清单只用于变更准备，不代表控制器已经执行扩缩容。
