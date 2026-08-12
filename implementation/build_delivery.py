@@ -34,7 +34,7 @@ def main()->None:
   with (temp/"change_record.csv").open("w",encoding="utf-8",newline="") as f:
    w=csv.writer(f,lineterminator="\n");w.writerow(["object","field","current_value","candidate_value","source"])
    w.writerow(["HorizontalPodAutoscaler/queue-worker","spec.maxReplicas",current_hpa["spec"].get("maxReplicas"),policy["max_replicas"],"autoscaling_policy.json"])
-   w.writerow(["HorizontalPodAutoscaler/queue-worker","spec.metrics.External", "missing",f"{policy['metrics']['external_name']} AverageValue {policy['metrics']['external_average_value']}","autoscaling_policy.json"])
+   w.writerow(["HorizontalPodAutoscaler/queue-worker","spec.metrics.External","missing",f"{policy['metrics']['external_name']} AverageValue={policy['metrics']['external_average_value']}","autoscaling_policy.json"])
    w.writerow(["HorizontalPodAutoscaler/queue-worker","spec.behavior.scaleUp.selectPolicy",current_hpa["spec"]["behavior"]["scaleUp"].get("selectPolicy"),policy["scale_up"]["select_policy"],"autoscaling_policy.json"])
    w.writerow(["HorizontalPodAutoscaler/queue-worker","spec.behavior.scaleDown.stabilizationWindowSeconds",current_hpa["spec"]["behavior"]["scaleDown"].get("stabilizationWindowSeconds"),policy["scale_down"]["stabilization_window_seconds"],"autoscaling_policy.json"])
    w.writerow(["Deployment/queue-worker","spec","unchanged","unchanged","current/deployment.yaml"])

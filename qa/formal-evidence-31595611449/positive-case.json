@@ -1,5 +1,0 @@
-{
-  "mutation": "max_replicas从30改为32",
-  "rendered_hpa_changed": true,
-  "behavior_changed": true
-}

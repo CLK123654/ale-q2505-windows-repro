@@ -1,1 +1,1 @@
-queue-worker的HPA在一次配置调整后丢失外部队列指标，扩容策略也被关闭。平台发布工程师需要按容量组策略整理Deployment与HPA的Kustomize候选目录，用kubectl生成清单并核对对象引用、环境标签和业务Deployment未被改动。
+queue-worker的HPA在一次配置调整后丢失外部队列指标，扩容策略也被关闭。平台发布工程师需要按容量组策略整理Deployment与HPA的Kustomize候选目录，用kubectl生成清单，并把变更记录和发布说明交给发布负责人安排上线。

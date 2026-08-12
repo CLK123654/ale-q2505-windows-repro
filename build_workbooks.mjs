@@ -47,7 +47,7 @@ const s=Workbook.create();add(s,'任务规格',[
 ['辅助工具','PowerShell7、kubectl.exe1.32.6、内置Kustomize5.5.0、Python3.12和PyYAML6.0.2'],
 ['输入来源','平台容量组提供的当前对象、弹性策略和production公共标签'],
 ['输入获取方式','从交接压缩包解压到Windows11本地目录'],
-['原始输入文件','current/deployment.yaml、current/hpa.yaml、autoscaling_policy.json和environment_labels.csv'],
+['原始输入文件','README.txt、current/deployment.yaml、current/hpa.yaml、autoscaling_policy.json和environment_labels.csv'],
 ['目标输出文件','release/production/deployment.yaml、release/production/hpa.yaml、release/production/kustomization.yaml、rendered.yaml、change_record.csv和release_notes.txt'],
 ['核心操作链','核对身份与策略→修正HPA→保留Deployment业务配置→补公共标签→组织Kustomize→生成候选清单→记录变更'],
 ['HPA身份','autoscaling/v2HorizontalPodAutoscaler位于queue-platform并指向apps/v1Deployment queue-worker'],

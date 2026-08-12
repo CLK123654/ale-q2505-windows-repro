@@ -24,26 +24,26 @@
   },
   "minimum_total": 45,
   "notes": [
-    "标题改为队列消费者弹性清单恢复，是平台发布岗位的直接业务称呼，没有双指标仲裁、缩容稳定窗口、策略预算复演等名词堆叠。",
-    "Prompt只要求恢复HPA合同、保护Deployment和生成Kustomize候选材料，没有离线复算HPA Controller轨迹，也没有固定时间点或验收矩阵。",
-    "任务结论限定为kubectl客户端构建和静态字段核对，明确不代表指标采集、调度或实际扩缩容，消除了软件能力幻觉。",
-    "输入材料、Reference说明、工作簿与环境依赖使用发布负责人消费链，没有自动评测、反作弊、双净目录或本题特有风险是模板。",
-    "与当前批次标题横向复读，未采用交接、审查、排查、冲突处理、发布窗口或双名词后缀；未发现伪引用、无来源资源数字或推理跳步。"
+    "标题是平台发布岗位常用的直接业务称呼，没有双指标仲裁、缩容稳定窗口或策略复演等名词堆叠。",
+    "Prompt只交代HPA合同恢复、Deployment保护和发布材料，没有离线复算HPA Controller轨迹，也没有测试矩阵或固定文件计数。",
+    "Reference只保留发布负责人接收的候选对象、渲染清单、变更记录和发布说明，生成器、测试器与QA证据都在交付物之外。",
+    "任务结论限定为kubectl客户端构建和静态字段核对，明确没有指标采集、调度或实际扩缩容结论。",
+    "逐字段复读未发现宣传腔、伪引用、无来源资源数字、推理跳步或制题过程用语；标题和交付句式未采用同批高频后缀。"
   ],
   "reviewed_artifacts_sha256": {
     "任务名称.txt": "fed32811b7418b0a35f49de152daa13ed76e3b379fa2ec69ca7490913ca8977f",
     "任务概要.txt": "c288b9ca4050403748a744f594638ff61faad5e65bcf87d04926e060c8259dc2",
-    "任务prompt.txt": "1d74c600ddcadeee896814eb0fa9f72d533d2e84a478c3a7fddb3d33910edfb2",
-    "关键动作.txt": "292e926efbc2c56eb6251a11dcec2f8efa598db4d5909678914c9a8d3b098250",
-    "评分表.txt": "ad7f3a3037201af22eb5169a075dda410132a189890f1b2889a5b60de7b31db8",
-    "环境依赖.txt": "33e638d1ea8d26a18aa9f8243068659e877e8a791c71f6530f4a4d59bd55f70b",
-    "相关专业软件的关键步骤.txt": "86d38c83ac546b33d722145538a71bf5253333730199f0b206cbc1b1234577fd",
-    "task_fields.json": "9aa092b3ce791851a3b440b3ba4579b70980a51616ffae676f23773442fb09b2",
+    "任务prompt.txt": "89dbd60198d879e2c25842dba28021f8b77a9f9b06f452a9c4b109cfc8a6b644",
+    "关键动作.txt": "ccad701ea59e1e652b7837b017f9c6ccdccb50bebf5d812c4cdab77ff0dccaae",
+    "评分表.txt": "185e9abc663e9a3fa66222771842b08741da49a84c852b8393a3a45cb0c485bf",
+    "环境依赖.txt": "a406519dbaf7fa86afb1d28c0f58b2bbced2c2cc52c4e402a8840c321f15ec40",
+    "相关专业软件的关键步骤.txt": "88acd033d01c1323d084c336216e7a6e4a5d943f9fdd9f0a570c2b446d50f175",
+    "task_fields.json": "c5532445b3500481995eeb664b4453ac1739d1b3d11b1acbe275d6ea0e2d76c7",
     "输入数据包.zip": "30678e914502949899e5f07cd4cd5a00603562d18360a13383ea0852966c9005",
-    "reference.zip": "aeffa0c5d6c715be09b6a46288518350e9ec425f747da2de34dab87ece1f98ed",
-    "关键标准答案.xlsx": "39ae7b133191ea7c32bf25e1e2401b920dc5982cd142fa45b83f9f0952374f16",
-    "任务规格转化.xlsx": "7a0543835672a45e221c0d0440a91f8f04d84906c3cfe3c2ec6364cb28f7b14f",
-    "ALE-专家数据作业表_q2505.csv": "6eccf29b73e884b450134f2fb024d628ec27dd1c4b7f0482b1530745ad85fd4d"
+    "reference.zip": "6bd6d6fe93c65fe77c11aa292ac38ff0e2e3ac2dd60e84771d7f4e72d0c0913b",
+    "关键标准答案.xlsx": "308e3833c12f665150cc5b3b6d8225092401a4fe290f91fc9b8150f5f9898ee2",
+    "任务规格转化.xlsx": "de5d14331c53356cae7db88d0af9d762b4e903e83d2d73196fea5aca209ca0c9",
+    "ALE-专家数据作业表_q2505.csv": "bb28309d208eabfe71a027a15e3767ef9abdf17dc666dc7dc7f20d23f4e16f5f"
   },
   "online_ai_field_used_as_conclusion": false,
   "reviewed_on": "2026-08-12"
